@@ -43,27 +43,30 @@
 
 - setTimeout、Promise和IIFE的执行顺序或优先级
 
-  同步任务都在主线程上执行，形成执行栈。setTimeout等异步任务存在于task queue中，也可以说是event loop queue，只有当执行栈为空时才会从任务队列中取出异步任务进入主线程执行处理。对于`setTimeout(function() { ... }, 0)`，表示当前同步任务执行完毕后，也就是执行栈清空了，才立即执行指定callback。 而Promise在job queue中，和事件循环一样都是先进先出，不同的是在JavaScript线程内只有一个事件循环的任务队列，但可以有多个job queue。在执行完当前事件队列中的同步任务后，再执行本次任务中的所有job queue，然后再进行下一次事件循环。综上所以有：
+  同步任务都在主线程上执行，形成执行栈。setTimeout等异步任务存在于task queue中，也可以说是event loop queue，只有当执行栈为空时才会从任务队列中取出异步任务进入主线程执行处理。对于`setTimeout(function() { ... }, 0)`，表示当前同步任务执行完毕后，也就是执行栈清空了，才立即执行指定callback。 而Promise的异步callback在job queue中，和事件循环一样都是先进先出，不同的是在JavaScript线程内只有一个事件循环的任务队列，但可以有多个job queue。在执行完当前事件队列中的同步任务后，再执行本次任务中的所有job queue，然后再进行下一次事件循环。综上所以有：
 
   ```js
   console.log('head');
   setTimeout(() => console.log('setTimeout0'), 0);
   new Promise((resolve) => {
+    console.log('Promise0-1');
     resolve();
+    console.log('Promise0-2');
   }).then(() => {
-    return console.log('Promise0-1');
+    return console.log('then0-1');
   }).then(() => {
-    return console.log('Promise0-2');
+    return console.log('then0-2');
   });
   new Promise((resolve) => {
     resolve();
+    console.log('Promise1-2')
   }).then(() => {
     return console.log('Promise1-1');
   }).then(() => {
     return console.log('Promise1-2');
   });
   console.log('tail');
-  // head tail Promise0-1 Promise1-1 Promise0-2 Promise1-2 setTimeout0
+  // head Promise0-1 Promise0-2 Promise1-2 tail then0-1 then1-1 then0-2 then1-2 setTimeout0
   ```
 
   ​
