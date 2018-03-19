@@ -29,7 +29,7 @@
 
   根据caniuse的统计，IE 9以下不支持。
 
-- 拓展运算符的实现原理
+- 拓展运算符`…`的实现原理
 
   很多时候其实就是`apply()`，`foo(…arr)`等同于`foo.apply(undefined, arr)`。EcmaScript中的底层实现仍不清楚，待考究。
 
