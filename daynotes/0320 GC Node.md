@@ -39,4 +39,29 @@
 
   + Stream
 
+    当内存无法一次性容纳需要处理的数据或者追求更高效的数据处理时，需要使用数据流。Stream基于事件机制，例如data事件会在Stream被创建后不断地被触发：
+
+    ```js
+    var readStream = fs.createReadStream(path);
+    readStream.on('data', function(chunk) { ... });
+    ```
+
+    数据流结束时则触发`end`。
+
+    但如果data事件的监听回调处理速度跟不上读取或写入速度，Stream内部的缓存会溢出，因此往往需要`write`方法判断传入的数据是临时放入了缓存中还是已被处理，同时还有`drain`事件判断缓存中的数据是否都已全部写入完毕：
+
+    ```js
+    var readStream = fs.createReadStream(src);
+    var writeStream = fs.createWriteStream(target);
+    readStream.on('data', function(chunk) {
+        if(!writeStream.write(chunk)) readStream.pause();  // 数据未写入，暂停数据读取
+    });
+    writeStream.on('drain', function() {
+        readStream.resume();  // 当前缓存的数据已全部写入目标，继续只读数据流的数据读取
+    });
+    readStream.on('end', function() {
+        writeStream.end();
+    });
+    ```
+
     ​
