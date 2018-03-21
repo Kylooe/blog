@@ -79,7 +79,75 @@
 
     + 作为客户端使用
 
+      在客户端模式下可以发起客户端HTTP请求，需要指定目标服务器位置并发送请求头和请求体：
+
+      ```js
+      var options = {
+          hostname: 'www.example.com',
+          port: 80,
+          path: '/public',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'  //指示发送数据的MIME类型
+          }
+      }
+      var request = http.request(options, function(response) { ... });
+      request.write('hello');
+      request.end();
+      ```
+
+      使用`.request`方法创建请求后，可以将request对象当作只写Stream写入请求体和结束请求。
+
+      GET请求是HTTP请求最为常见的一种，不需要请求体，因此对于GET请求可以直接：`http.get('http://www.example.com/', function(response) { ... })`。
+
+      发送请求完毕接收到response headers时，就会调用callback，对于response对象可以使用`.statusCode`属性和`.headers`属性等等访问响应头的数据，也可以将其当作只读Stream访问响应体数据。
+
     HTTP请求和响应本质都是一个数据流，并且都是由headers和body组成，HTTP请求发送到服务器时可以认为是单字节以Stream发送，可以把request对象当作只读Stream来访问request body，同时也可以使用Stream和Buffer相关的方法操作request和response。
+
+  - HTTPS
+
+    https模块和http模块非常相似，区别在于创建https服务器时需要额外处理SSL证书，指定服务器使用的公钥和私钥：
+
+    ```js
+    var options = {
+        key: fs.readFileSync('./ssl/default.key'),
+    	cert: fs.readFileSync('./ssl/default.cer')    
+    };
+    https.createServer(options, function(request, response) { ... });
+    ```
+
+    客户端模式下发送请求也和HTTP请求几乎相同，只是端口为443。以nodejs官网的api页面为例：
+
+    ```js
+    var http = require('http'), https = require('https');
+    var body = [];
+    https.request({
+        hostname: 'nodejs.org',
+        port: 443,
+        path: '/api/',
+        method: 'GET'
+    }, function(response) {
+        response.on('data', function(chunk) {
+            body.push(chunk);
+        });
+        response.on('end', function() {
+            body = Buffer.concat(body);
+        });
+    });
+    http.createServer(function(request, response) {
+        response.writeHead(200, { 'Content-Type': 'text/html' });
+        response.end(body);
+    }).listen(9999);
+    ```
+
+    访问127.0.0.1:9999，将会看到请求下来并写入本地服务器响应的html。
+
+- HTTP状态码301、308、302、307、400
+
+  `301 Moved Permanently`和`308 Permanent Redirect`都是表明请求的资源已经移动到了**Location**头所示的URL，301仅用于GET和HEAD方法的请求，POST请求则返回的是308。
+
+  `302 Found`和`307 Temporary Redirect`表明请求的资源<u>临时</u>移动到了Location头所示的URL，具体对应的方法同上。
+
+  `400 Bad Request`表示发送的Request可能有语法错误，服务器无法解析。
 
 - Webpack require
 
