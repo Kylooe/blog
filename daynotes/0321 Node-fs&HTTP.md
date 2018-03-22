@@ -120,7 +120,7 @@
     ```js
     var http = require('http'), https = require('https');
     var body = [];
-    https.request({
+    var request = https.request({
         hostname: 'nodejs.org',
         port: 443,
         path: '/api/',
@@ -133,6 +133,7 @@
             body = Buffer.concat(body);
         });
     });
+    request.end();  // 不明确地结束请求的话有可能导致Error: socket hang up
     http.createServer(function(request, response) {
         response.writeHead(200, { 'Content-Type': 'text/html' });
         response.end(body);
