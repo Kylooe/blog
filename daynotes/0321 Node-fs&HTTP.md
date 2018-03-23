@@ -142,6 +142,8 @@
 
     访问127.0.0.1:9999，将会看到请求下来并写入本地服务器响应的html。
 
+    socket hang up错误出现原因往往是发起http请求时http模块自动提供了一个全局客户端`http.globalAgent`，但默认只允许最多5个并发socket连接，如果某个时刻http请求过多就会发生socket hang up。要解决可以通过修改`http.globalAgent.maxSocket`的数值。
+
 - HTTP状态码301、308、302、307、400
 
   `301 Moved Permanently`和`308 Permanent Redirect`都是表明请求的资源已经移动到了**Location**头所示的URL，301仅用于GET和HEAD方法的请求，POST请求则返回的是308。
